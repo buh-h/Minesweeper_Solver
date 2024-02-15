@@ -157,21 +157,11 @@ public class Solver {
         Thread.sleep(10);
 
         board[i][j] = -2; // Updates the stored board with the flagged mine
-        // Calls chord on all 8 surrounding tiles 
-        // MAKE SURE THIS DOESN'T CAUSE ANY ISSUES LIKE UNFLAGGING A MINE
-        chord(i+1, j);
-        chord(i+1, j+1);
-        chord(i+1, j-1);
-        chord(i, j+1);
-        chord(i, j-1);
-        chord(i-1, j);
-        chord(i-1, j+1);
-        chord(i+1, j-1);
     }
 
-    // Counts number of unopened tiles around and mines them if they match number
+    // Counts number of unopened tiles around a tile
     // Maybe find a way to make this prettier later
-    static boolean countSurrounding(int i, int j) throws Throwable {
+    static int countUnopened(int i, int j) throws Throwable {
         int count = 0;
         // See if we're on the edge of the board
         boolean l = false, r = false, u = false, d = false;
@@ -180,28 +170,38 @@ public class Solver {
         if(i == boardHeight-1) r = true;
         if(j == boardWidth-1) d = true;
 
-        if (!r && (board[i+1][j] == -1 || board[i+1][j] == -2)) {count++;}
-        if (!r && !d && (board[i+1][j+1] == -1 || board[i+1][j+1] == -2)) {count++;}
-        if (!r && !u && (board[i+1][j-1] == -1 || board[i+1][j-1] == -2)) {count++;}
-        if (!d && (board[i][j+1] == -1 || board[i][j+1] == -2)) {count++;}
-        if (!u && (board[i][j-1] == -1 || board[i][j-1] == -2)) {count++;}
-        if (!l && (board[i-1][j] == -1 || board[i-1][j] == -2)) {count++;}
-        if (!l && !d && (board[i-1][j+1] == - 1 || board[i-1][j+1] == -2)) {count++;}
-        if (!l && !u && (board[i-1][j-1] == -1 || board[i-1][j-1] == -2)) {count++;}
+        if (!r && board[i+1][j] == -1) {count++;}
+        if (!r && !d && board[i+1][j+1] == -1) {count++;}
+        if (!r && !u && board[i+1][j-1] == -1) {count++;}
+        if (!d && board[i][j+1] == -1) {count++;}
+        if (!u && board[i][j-1] == -1) {count++;}
+        if (!l && board[i-1][j] == -1) {count++;}
+        if (!l && !d && board[i-1][j+1] == - 1 ) {count++;}
+        if (!l && !u && board[i-1][j-1] == -1) {count++;}
 
-        // Fix this for edge cases later
-        if (count == board[i][j]) { // If the number of unopened tiles matches the number, flag all mines
-            if (!r && board[i+1][j] == -1) {flag(i+1, j);}
-            if (!r && !d && board[i+1][j+1] == -1) {flag(i+1, j+1);}
-            if (!r && !u && board[i+1][j-1] == -1) {flag(i+1, j-1);}
-            if (!d && board[i][j+1] == -1) {flag(i, j+1);}
-            if (!u && board[i][j-1] == -1) {flag(i, j-1);}
-            if (!l && board[i-1][j] == -1) {flag(i-1, j);}
-            if (!l && !d && board[i-1][j+1] == -1) {flag(i-1, j+1);}
-            if (!l && !u && board[i-1][j-1] == -1) {flag(i-1, j-1);}
-            return true;
-        }
-        return false;
+        return count;
+    }
+    // Counts number of mines around a tile
+    // Maybe find a way to make this prettier later
+    static int countMines(int i, int j) throws Throwable {
+        int count = 0;
+        // See if we're on the edge of the board
+        boolean l = false, r = false, u = false, d = false;
+        if(i == 0) l = true;
+        if(j == 0) u = true;
+        if(i == boardHeight-1) r = true;
+        if(j == boardWidth-1) d = true;
+
+        if (!r && board[i+1][j] == -2) {count++;}
+        if (!r && !d && board[i+1][j+1] == -2) {count++;}
+        if (!r && !u && board[i+1][j-1] == -2) {count++;}
+        if (!d && board[i][j+1] == -2) {count++;}
+        if (!u && board[i][j-1] == -2) {count++;}
+        if (!l && board[i-1][j] == -2) {count++;}
+        if (!l && !d && board[i-1][j+1] == -2) {count++;}
+        if (!l && !u && board[i-1][j-1] == -2) {count++;}
+
+        return count;
     }
 
 
@@ -305,6 +305,7 @@ public class Solver {
     }
 
     // Basic solving algorithm
+    // Need to fix
     static void simpleSolve() throws Throwable {
         init(); // Initializes solver
         boolean changeMade = false;
@@ -312,7 +313,6 @@ public class Solver {
             for (int i=0; i<boardWidth; i++) 
                 for (int j=0; j<boardWidth; j++) {
                     
-                    changeMade = countSurrounding(i, j);
                 }
             if (!changeMade) {
                 System.out.println("Guessing");
