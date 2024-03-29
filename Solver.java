@@ -2,19 +2,6 @@ import java.awt.*;
 import java.awt.image.*;
 import java.util.*;
 
-// Point object used to store positions of tiles
-// class Point {
-//     int i; int j;
-//     public Point(int i, int j) {
-//         this.i = i;
-//         this.j = j;
-//     }
-
-//     @Override
-//     public int hashCode() {
-
-//     }
-// }
 public class Solver {
 
     // Tracks dimensions of screen
@@ -25,7 +12,7 @@ public class Solver {
     static int firstTileX = 0;
     static int firstTileY = 0;
     // Tracks the dimension of the board
-    // Currently set for easy (8x8)
+    // Easy 8x8, Intermediate 16x16, Expert 16x30
     static int boardWidth = 16;
     static int boardHeight = 16;
     static boolean gameOver = false; // Tracks whether the game is over
@@ -189,7 +176,21 @@ public class Solver {
         if (isOnBoard(i-1, j-1) && board[i-1][j-1] == -1) count++;
 
         return count;
-        
+    }
+    // Counts number of unopened tiles around a tile for a passed board
+    static int countUnopenedCopy(int i, int j, int[][] copy) {
+        int count = 0;
+
+        if (isOnBoard(i+1, j) && copy[i+1][j] == -1) count++;
+        if (isOnBoard(i+1, j+1) && copy[i+1][j+1] == -1) count++;
+        if (isOnBoard(i+1, j-1) && copy[i+1][j-1] == -1) count++;
+        if (isOnBoard(i, j+1) &&  copy[i][j+1] == -1) count++;
+        if (isOnBoard(i, j-1) && copy[i][j-1] == -1) count++;
+        if (isOnBoard(i-1, j) && copy[i-1][j] == -1) count++;
+        if (isOnBoard(i-1, j+1) && copy[i-1][j+1] == - 1 ) count++;
+        if (isOnBoard(i-1, j-1) && copy[i-1][j-1] == -1) count++;
+
+        return count;
     }
 
     // Counts number of mines around a tile
@@ -208,6 +209,24 @@ public class Solver {
 
         return count;
     }
+
+    // Counter number of mines around a tile for a passed board
+    static int countMinesCopy(int i, int j, int[][] copy) {
+        int count = 0;
+
+        if (isOnBoard(i+1, j) && copy[i+1][j] == -2) count++;
+        if (isOnBoard(i+1, j+1) && copy[i+1][j+1] == -2) count++;
+        if (isOnBoard(i+1, j-1) && copy[i+1][j-1] == -2) count++;
+        if (isOnBoard(i, j+1) &&  copy[i][j+1] == -2) count++;
+        if (isOnBoard(i, j-1) && copy[i][j-1] == -2) count++;
+        if (isOnBoard(i-1, j) && copy[i-1][j] == -2) count++;
+        if (isOnBoard(i-1, j+1) && copy[i-1][j+1] == -2) count++;
+        if (isOnBoard(i-1, j-1) && copy[i-1][j-1] == -2) count++;
+
+        return count;
+    }
+
+    // Counts the number of cleared tiles that surround the 
 
 
     // Tests whether a tile has been cleared or not
@@ -296,11 +315,14 @@ public class Solver {
         return changeMade;
     }
     // Updates the content of board to match the game
-    static void updateBoard() {
+    static void updateBoard() throws Throwable{
+        robot.mouseMove(0, 0); // Moves mouse out of way
+        Thread.sleep(10);
         BufferedImage image = screenshot();
         for (int i=0; i<boardHeight; i++) 
             for (int j=0; j<boardWidth; j++) {
-                board[i][j] = identify(i, j, image);
+                if (board[i][j] != -2)
+                    board[i][j] = identify(i, j, image);
             }
     }
 
@@ -337,11 +359,15 @@ public class Solver {
         int red = (color & 0xff0000) >> 16;
         if (red >= 200) {
             gameOver = true; // If the edge is red the game was lost
-            printBoard();
+            //printBoard();
         }
 
     }
 
+    static void test() throws Throwable {
+        init();
+        while (clearEasyTiles()) {updateBoard(); printBoard();}
+    }
     // Basic solving algorithm
     static void simpleSolve() throws Throwable {
         init(); // Initializes solver
@@ -363,61 +389,99 @@ public class Solver {
     }
 
     // Returns a list of all surrounding unopened tiles
-    public static ArrayList<Point> listUnopened(int i, int j) {
+    public static ArrayList<Point> listUnopened(int i, int j, int[][] b) {
         ArrayList<Point> list = new ArrayList<Point>();
         // Adds surrounding unopened tiles to the list 
-        if (isOnBoard(i+1, j) && board[i+1][j] == -1) list.add(new Point(i+1, j));
-        if (isOnBoard(i+1, j+1) && board[i+1][j+1] == -1) list.add(new Point(i+1, j+1));
-        if (isOnBoard(i+1, j-1) && board[i+1][j-1] == -1) list.add(new Point(i+1, j-1));
-        if (isOnBoard(i, j+1) &&  board[i][j+1] == -1) list.add(new Point(i, j+1));
-        if (isOnBoard(i, j-1) && board[i][j-1] == -1) list.add(new Point(i, j-1));
-        if (isOnBoard(i-1, j) && board[i-1][j] == -1) list.add(new Point(i-1, j));
-        if (isOnBoard(i-1, j+1) && board[i-1][j+1] == - 1 ) list.add(new Point(i-1, j+1));
-        if (isOnBoard(i-1, j-1) && board[i-1][j-1] == -1) list.add(new Point(i-1, j-1));
+        if (isOnBoard(i+1, j) && b[i+1][j] == -1) list.add(new Point(i+1, j));
+        if (isOnBoard(i+1, j+1) && b[i+1][j+1] == -1) list.add(new Point(i+1, j+1));
+        if (isOnBoard(i+1, j-1) && b[i+1][j-1] == -1) list.add(new Point(i+1, j-1));
+        if (isOnBoard(i, j+1) &&  b[i][j+1] == -1) list.add(new Point(i, j+1));
+        if (isOnBoard(i, j-1) && b[i][j-1] == -1) list.add(new Point(i, j-1));
+        if (isOnBoard(i-1, j) && b[i-1][j] == -1) list.add(new Point(i-1, j));
+        if (isOnBoard(i-1, j+1) && b[i-1][j+1] == - 1 ) list.add(new Point(i-1, j+1));
+        if (isOnBoard(i-1, j-1) && b[i-1][j-1] == -1) list.add(new Point(i-1, j-1));
         return list;
+    }
+    // Returns a copy of the current board
+    public static int[][] copyBoard() {
+        int[][] copy = new int[boardHeight][boardWidth];
+        for (int i=0; i<boardHeight; i++)
+            for (int j=0; j<boardWidth; j++) {
+                copy[i][j] = board[i][j];
+            }
+        return copy;
     }
 
     // Modified version of clearEasyTiles to use for testing cases
+    // Modify this to just fully clear a test case rather than just iterating rhgouh once 
+    // Modify this to add mines or clear tiles to an arraylist, and ensuring each element only gets added once
+    // And add all elements of the array list to the maps at end
     public static boolean testCase(HashMap<Point, Integer> clear, HashMap<Point, Integer> mines, int[][] copy) {
-
-        boolean changeMade = false;
-
-        for (int i=0; i<boardHeight; i++)
-            for (int j=0; j<boardWidth; j++) {
-                // If the number on a tile is the same as the number of unopened tiles, accounting for mines 
-                if (board[i][j] > 0 && board[i][j] == countUnopened(i,j) + countMines(i, j) && countUnopened(i,j) != 0) {
-                    changeMade = true;
-                    ArrayList<Point> unopened = new ArrayList<Point>(); // Gets a list of unopened tiles
-                    for (Point p: unopened) { // Iterates through the list of unopened tiles
-                        copy[p.x][p.y] = -2; // Updates the copy's boardstate
-                        // If the key is already in mines, increment the value
-                        if (mines.containsKey(p)) clear.put(p, clear.get(p) + 1);
-                        // If the key is not in clear, add it to mines with value 1
-                        else mines.put(p, 1);
+        boolean changeMade = true;
+        ArrayList<Point> caseClear = new ArrayList<Point>();
+        ArrayList<Point> caseMines = new ArrayList<Point>();
+        // System.out.println("");
+        // for (int i=0; i<boardHeight; i++) {
+        //     for (int j=0; j<boardWidth; j++) 
+        //         System.out.print(copy[i][j] + "\t");
+        //     System.out.println("");
+        // }
+        while (changeMade) {
+            changeMade = false;
+            for (int i=0; i<boardHeight; i++)
+                for (int j=0; j<boardWidth; j++) {
+                    boolean invalid = copy[i][j] > countUnopenedCopy(i,j, copy)+countMinesCopy(i, j, copy) 
+                            || copy[i][j] < countMinesCopy(i, j, copy);
+                    if (copy[i][j] > 0 && invalid) {
+                        for (int x=0;x<8;x++) {
+                            for (int y=0;y<8;y++)
+                                System.out.print(copy[x][y] + "\t");
+                                System.out.println("");
+                        }
+                        System.out.println("" + i + " " + j);
+                        System.out.println(countUnopenedCopy(i,j, copy)+countMinesCopy(i, j, copy));
+                        return false;
+                    }
+                    // If the number on a tile is the same as the number of unopened tiles, accounting for mines 
+                    else if (copy[i][j] > 0 && copy[i][j] == countUnopenedCopy(i,j, copy) + countMinesCopy(i, j, copy) 
+                            && countUnopenedCopy(i, j, copy) != 0) {
+                        
+                        changeMade = true;
+                        ArrayList<Point> unopened = listUnopened(i, j, copy); // Gets a list of unopened tiles
+                        for (Point p: unopened) { // Iterates through the list of unopened tiles
+                            copy[p.x][p.y] = -2; // Updates the copy's boardstate
+                            if (!caseMines.contains(p)) caseMines.add(p);
+                        }
+                    }
+                    // If the number of mines matches the number on a tile and there are unopened tiles
+                    else if (copy[i][j] > 0 && copy[i][j] == countMinesCopy(i, j, copy) 
+                            && countUnopenedCopy(i,j, copy) != 0) {
+                        changeMade = true;
+                        ArrayList<Point> unopened = listUnopened(i, j, copy); // Gets a list of unopened tiles
+                        for (Point p: unopened) { // Iterates through the list of unopened tiles
+                            copy[p.x][p.y] = 0; // Updates the copy's boardstate
+                            if (!caseClear.contains(p)) caseClear.add(p); 
+                        }
                     }
                 }
-
-                // If the number of mines matches the number on a tile and there are unopened tiles
-                else if (board[i][j] > 0 && board[i][j] == countMines(i, j) && countUnopened(i,j) != 0) {
-                    changeMade = true;
-                    ArrayList<Point> unopened = new ArrayList<Point>(); // Gets a list of unopened tiles
-                    for (Point p: unopened) { // Iterates through the list of unopened tiles
-                        copy[p.x][p.y] = 0; // Updates the copy's boardstate
-                        // If the key is already in clear, increment the value
-                        if (clear.containsKey(p)) clear.put(p, clear.get(p) + 1);
-                        // If the key is not in clear, add it to clear with value 1
-                        else clear.put(p, 1);
-                    }
-                }
-            }
-        return changeMade;
+        }
+        for (Point p: caseClear) 
+            if (clear.containsKey(p)) clear.put(p, clear.get(p) + 1);
+            // If the key is not in mines, add it to clear with value 1
+            else clear.put(p, 1);
+        for (Point p: caseMines) 
+            if (mines.containsKey(p)) mines.put(p, mines.get(p) + 1);
+            // If the key is not in mines, add it to clear with value 1
+            else mines.put(p, 1);
+        return true;
     }
+
     // More robust solving algorithm, works by testing cases 
     static void caseSolve() throws Throwable {
         init(); // Initializes solver
         boolean changeMade = false;
         while (!gameOver) { // Runs as long as the game is not over
-
+            changeMade = false;
             while (clearEasyTiles()) updateBoard();
 
             // Tests cases and compares them against each other
@@ -427,55 +491,91 @@ public class Solver {
                     HashMap<Point, Integer> clear = new HashMap<Point, Integer>();
                     HashMap<Point, Integer> mines = new HashMap<Point, Integer>();
                     int numCases = 0; // Number to keep track of the number of cases being tested
+                    int numInvalid = 0; // Number to keep track of the number of invalid cases found
                     // If there is 1 extra unopened tile, ensures there isn't too much uncertainty
-                    if (board[i][j]>0 && board[i][j]-countMines(i, j)==countUnopened(i, j)-1 && countUnopened(i, j)<4) {
+                    if (board[i][j]>0 && board[i][j]-countMines(i, j)==countUnopened(i, j)-1) {
                         numCases = countUnopened(i, j);
-                        // Makes a copy of the board
-                        int[][] boardCopy = new int[boardHeight][boardWidth];
-                        for (int k=0; k<boardHeight; k++) boardCopy[k] = board[k].clone();
+                        //System.out.println("Enter Case 1 " + i + " " + j + " " + numCases);
                         // Creates cases
                         for (int k=0; k<numCases; k++) { // Runs once for each case
+                            ArrayList<Point> caseClear = new ArrayList<Point>();
+                            ArrayList<Point> caseMines = new ArrayList<Point>();
+                            int[][] boardCopy = copyBoard(); // Makes a copy of the board
                             // clear tile at k, flag the rest of the tiles
                             int index = 0;
-                            for (Point p: listUnopened(i, j)) {
-                                if (k == index) boardCopy[p.x][p.y] = 0;
-                                else boardCopy[p.x][p.y] = -2;
+                            for (Point p: listUnopened(i, j, board)) {
+                                if (k == index) {
+                                    boardCopy[p.x][p.y] = 0;
+                                    if (!caseClear.contains(p)) caseClear.add(p); 
+                                }
+                                else {
+                                    boardCopy[p.x][p.y] = -2;
+                                    if (!caseMines.contains(p)) caseMines.add(p); 
+                                }
                                 index++;
                             }
-                            while (testCase(clear, mines, boardCopy)); // Solves the case
+                            if (testCase(clear, mines, boardCopy)) {// Solves the case
+                                for (Point p: caseClear) 
+                                    if (clear.containsKey(p)) clear.put(p, clear.get(p) + 1);
+                                    // If the key is not in mines, add it to clear with value 1
+                                    else clear.put(p, 1);
+                                    for (Point p: caseMines) 
+                                    if (mines.containsKey(p)) mines.put(p, mines.get(p) + 1);
+                                    // If the key is not in mines, add it to clear with value 1
+                                    else mines.put(p, 1);                            
+                            } else numInvalid++;
                         }
 
                     }
                     // If there is one mine and that mine isn't flagged, ensures there isn't too much uncertainty
-                    else if (board[i][j]>0 && board[i][j]-countMines(i, j)==1 && countUnopened(i, j)<4) {
+                    else if (board[i][j]>0 && board[i][j]-countMines(i, j)==1) {
                         numCases = countUnopened(i, j);
-                        // Makes a copy of the board
-                        int[][] boardCopy = new int[boardHeight][boardWidth];
-                        for (int k=0; k<boardHeight; k++) boardCopy[k] = board[k].clone();
-
+                        //System.out.println("Enter Case 2 " + i + " " + j + " " + numCases);
                         // Creates cases
                         for (int k=0; k<numCases; k++) { // Runs once for each case
+                            ArrayList<Point> caseClear = new ArrayList<Point>();
+                            ArrayList<Point> caseMines = new ArrayList<Point>();
+                            int[][] boardCopy = copyBoard(); // Makes a copy of the board
                             // flag tile at k, clear the rest of the tiles
                             int index = 0;
-                            for (Point p: listUnopened(i, j)) {
-                                if (k == index) boardCopy[p.x][p.y] = -2;
-                                else boardCopy[p.x][p.y] = 0;
+                            for (Point p: listUnopened(i, j, board)) {
+                                if (k == index) {
+                                    boardCopy[p.x][p.y] = -2;
+                                    if (!caseMines.contains(p)) caseMines.add(p); 
+                                }
+                                else {
+                                    boardCopy[p.x][p.y] = 0;
+                                    if (!caseClear.contains(p)) caseClear.add(p);
+                                }
                                 index++;
                             }
-                            while (testCase(clear, mines, boardCopy)); // Solves the case
+                            if (testCase(clear, mines, boardCopy)) {// Solves the case
+                                for (Point p: caseClear) 
+                                    if (clear.containsKey(p)) clear.put(p, clear.get(p) + 1);
+                                    // If the key is not in mines, add it to clear with value 1
+                                    else clear.put(p, 1);
+                                for (Point p: caseMines) 
+                                    if (mines.containsKey(p)) mines.put(p, mines.get(p) + 1);
+                                    // If the key is not in mines, add it to clear with value 1
+                                    else mines.put(p, 1);
+                            } else numInvalid++;
                         }
                     }
                     // Checks whether a tile has been cleared or mines in all cases
                     for (Point p: clear.keySet()) 
-                        if (clear.get(p) == numCases) {
+                        if (clear.get(p) == numCases-numInvalid) {
                             click(p.x, p.y);
                             changeMade = true;
+                            System.out.print(p +" "+ clear.get(p));
                         }
+
                     for (Point p: mines.keySet()) 
-                    if (mines.get(p) == numCases) {
+                    if (mines.get(p) == numCases-numInvalid) {
                         flag(p.x, p.y);
                         changeMade = true;
+                        System.out.print(p + " " + clear.get(p));
                     }
+
                     if (changeMade) break; // Breaks out of loop if a change was made
                 }
                 if (changeMade) break; // Breaks out of loop if a change was made
@@ -497,29 +597,33 @@ public class Solver {
         //simpleSolve();
         caseSolve();
 
-        //init();
-        // for (int i=0; i<boardWidth; i++) 
-        //     for (int j=0; j<boardHeight; j++) 
-        //         if (board[i][j] == 1)
-        //             System.out.println("" + i + " " + j);
+        // HashMap<Point, Integer> clear = new HashMap<Point, Integer>();
+        // HashMap<Point, Integer> mines = new HashMap<Point, Integer>();
+        // init();
+        // board[6][3] = -2;
+        // board[7][3] = -2;
+        // //printBoard();
+        // System.out.println("");
+        // int[][] copy = copyBoard();
+        // copy[2][1] = -2;
         
-        // printBoard();
-        // System.out.println(countUnopened(1,0));
-
-
-
-
-        // //For testing colors
-        // BufferedImage image = screenshot();
-        // Point p;
-        // while (true) {
-        //     p = MouseInfo.getPointerInfo().getLocation();
-        //     int color = image.getRGB(p.x, p.y);
-        //     int blue = color & 0xff;
-        //     int green = (color & 0xff00) >> 8;
-        //     int red = (color & 0xff0000) >> 16;
-        //     //System.out.println(p.x + " " + p.y);
-        //     System.out.println("Red: " + red + " Green: " + green + " Blue: " + blue);
+        // System.out.println(testCase(clear, mines, copy));
+        // for (int i=0; i<boardHeight; i++) {
+        //     for (int j=0; j<boardWidth; j++) 
+        //         System.out.print(copy[i][j] + "\t");
+        //     System.out.println("");
         // }
+        // System.out.println(clear);
+
+        // int[][] copy2 = copyBoard();
+        // copy2[2][0] = -2;
+        
+        // System.out.println(testCase(clear, mines, copy2));
+        // for (int i=0; i<boardHeight; i++) {
+        //     for (int j=0; j<boardWidth; j++) 
+        //         System.out.print(copy2[i][j] + "\t");
+        //     System.out.println("");
+        // }
+        // System.out.println(clear);
     }  
 } 
