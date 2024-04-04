@@ -3,6 +3,7 @@ A bot to solve games of minesweeper, this program works on the app MinesweeperX,
 visible the entire time in order for it to work.
 
 How it works: 
+
 This program uses a Robot object to take screenshots of the screen and reads the color of specific pixes in order to 
 find and identify the board. 
 
