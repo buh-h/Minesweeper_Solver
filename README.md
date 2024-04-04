@@ -17,5 +17,4 @@ selects an unopened tile to click.
 # Future additions: 
 - Create a better method for generating all possible combinations, currently only generates possible combinations for specific
 common patterns
-- Have the program automatically find the size of the board 
 - Have the program make a more educated guess rather than randomly choosing a tile
