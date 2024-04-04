@@ -30,7 +30,8 @@ public class Solver {
     static void init() throws Throwable {
         System.out.println("Initializing Solver");
         robot = new Robot();
-        findFirstTile(); 
+        findBoard(); 
+        System.out.println(boardWidth + " " + boardHeight);
         // Initializes board with its default values
         board = new int[boardHeight][boardWidth]; 
         for (int i=0; i<boardHeight; i++) 
@@ -86,9 +87,10 @@ public class Solver {
     }
     
     // Finds the coordinates of the top-leftmost tile 
-    static void findFirstTile() {
-
+    static void findBoard() {
         BufferedImage image = screenshot();
+
+        // Finds the location of the top-leftmost tile
         boolean borderFound = false;
         //Iterates through screen pixels
         for (int i=0; i<ScreenWidth; i++) {
@@ -112,6 +114,17 @@ public class Solver {
             if (borderFound)
                 break;
         }
+
+        // Finds the dimesnsion of the board
+        int width = 0; int height = 0; // Keeps track of the width and height of the board
+        // Iterates along the width of the board until the color doesn't match a tile
+        while (matchesTile(image.getRGB(firstTileX+width*16, firstTileY))) width++;
+        // Iterates along the height of the board until the color doesn't match a tile
+        while (matchesTile(image.getRGB(firstTileX, firstTileY+height*16))) height++;
+
+        // Updates boardHeight and boardWidth variables
+        boardHeight = height-1;
+        boardWidth = width-1;
     }
 
     // Clicks specified tile
@@ -341,11 +354,11 @@ public class Solver {
         }
 
         Random rand = new Random();
-        int i = rand.nextInt(boardWidth);
-        int j = rand.nextInt(boardHeight);
+        int i = rand.nextInt(boardHeight);
+        int j = rand.nextInt(boardWidth);
         while (board[i][j] != -1) { // Generates random numbers until an open tile is found
-            i = rand.nextInt(boardWidth);
-            j = rand.nextInt(boardHeight);
+            i = rand.nextInt(boardHeight);
+            j = rand.nextInt(boardWidth);
         }
         click(i, j);
         
