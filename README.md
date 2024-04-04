@@ -14,7 +14,7 @@ and generates all possible arrangements of mines based on a number tile, and com
 safe or mined in all combinations, the program clicks or flags the respectively. When all else fails, the program randomly 
 selects an unopened tile to click.
 
-Future additions: 
+# Future additions: 
 - Create a better method for generating all possible combinations, currently only generates possible combinations for specific
 common patterns
 - Have the program automatically find the size of the board 
