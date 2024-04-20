@@ -9,7 +9,7 @@ find and identify the board.
 
 In order to solve the board the program first clears easy tiles with easy solutions (i.e. when the number of 
 unopened tiles and mines surrounding a tile matches the number on the tile, or if the number of mines surrounding a
-tile is already fulfilled). When there are no longer any easy tiles to clear, the program then iterates throguh the board, 
+tile is already fulfilled). When there are no longer any easy tiles to clear, the program then iterates throgh the board, 
 and generates all possible arrangements of mines based on a number tile, and compares the results of each. If a tile is 
 safe or mined in all combinations, the program clicks or flags the respectively. When all else fails, the program randomly 
 selects an unopened tile to click.
